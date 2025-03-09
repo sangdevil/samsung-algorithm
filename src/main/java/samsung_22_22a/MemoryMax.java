@@ -8,10 +8,15 @@ import java.util.Queue;
 import java.util.StringTokenizer;
 
 public class MemoryMax {
+    public static long maxMemoryUsed = 0;
+    public static void trackMemoryUsage() {
+        Runtime runtime = Runtime.getRuntime();
+        long usedMemory = runtime.totalMemory() - runtime.freeMemory();
+        maxMemoryUsed = Math.max(maxMemoryUsed, usedMemory);
+    }
     public static class People {
-        int x, y, xs, ys, turn;
+        int x,y,xs,ys,turn;
         boolean hasReached;
-
         People(int x, int y, int xs, int ys, int turn) {
             this.x = x;
             this.y = y;
@@ -25,7 +30,6 @@ public class MemoryMax {
     public static class Camp {
         int x, y;
         boolean hasReached;
-
         Camp(int x, int y) {
             this.x = x;
             this.y = y;
@@ -34,7 +38,7 @@ public class MemoryMax {
     }
 
     public static class Pair {
-        int x, y, d;
+        int x,y,d;
         boolean visited;
 
         Pair(int x, int y, int d) {
@@ -45,16 +49,16 @@ public class MemoryMax {
         }
     }
 
-    public static int N, M, Time;
+    public static int N,M,Time;
     public static Camp[] camps;
     /**
      * Assume that peoples are sorted in the standard of turn.
      */
     public static People[] peoples;
-    public static int[][] directions = new int[][]{{0, -1}, {-1, 0}, {1, 0}, {0, 1}};
+    public static int[][] directions = new int[][]{{0,-1},{-1,0},{1,0},{0,1}};
     public static int[][] map;
     public static Pair[][] bfsMap;
-
+    public static Queue<Pair> queue;
     public static void calculateMinimumDistanceFromStore(int xs, int ys) {
         for (int y = 0; y < N; y++) {
             for (int x = 0; x < N; x++) {
@@ -73,12 +77,11 @@ public class MemoryMax {
 //        System.out.println(sb.toString());
 
         Pair current = bfsMap[ys][xs];
-        Queue<Pair> queue = new ArrayDeque<>();
+        queue = new ArrayDeque<>();
         queue.add(current);
-        int nx, ny;
+        int nx,ny;
         while (!queue.isEmpty()) {
             current = queue.poll();
-            current.visited = true;
 //            System.out.printf("current : (%d,%d) : %d\n", current.x, current.y, current.d);
             for (int[] dir : directions) {
                 nx = current.x + dir[0];
@@ -89,6 +92,7 @@ public class MemoryMax {
                 if (!bfsMap[ny][nx].visited && map[ny][nx] == 0) {
                     bfsMap[ny][nx].d = current.d + 1;
                     queue.add(bfsMap[ny][nx]);
+                    bfsMap[ny][nx].visited = true;
                 }
             }
         }
@@ -101,7 +105,6 @@ public class MemoryMax {
             }
         }
     }
-
     public static Camp selectCamp(People people) {
         Camp selected = camps[0];
         int minD = 2 * N;
@@ -143,7 +146,7 @@ public class MemoryMax {
     }
 
     public static void movePeoples() {
-        int nx, ny, beforeD, currentD;
+        int nx,ny,beforeD, currentD;
 
         for (People people : peoples) {
             if (people.hasReached || people.turn >= Time) continue;
@@ -220,27 +223,35 @@ public class MemoryMax {
         People currentMovePeople;
         Camp selectedCamp;
         while (Time < 200) {
-            System.out.printf("Current time : %d\n", Time);
+//            System.out.printf("Current time : %d\n", Time);
             movePeoples();
             lockStoreAndPeople();
+            trackMemoryUsage(); // 메모리 사용량 측정
+
             if (Time <= M) {
                 currentMovePeople = peoples[Time - 1];
                 selectedCamp = selectCamp(currentMovePeople);
                 movePeopleToCamp(currentMovePeople, selectedCamp);
-                System.out.printf("Camp Selected : (%d, %d)\n", selectedCamp.x, selectedCamp.y);
+//                System.out.printf("Camp Selected : (%d, %d)\n", selectedCamp.x, selectedCamp.y);
             }
 
-            System.out.println("Map is :");
-            showMap();
+//            System.out.println("Map is :");
+//            showMap();
             if (checkFinish()) break;
             Time++;
+
         }
+
+        System.out.println("Max Memory Used: " + (maxMemoryUsed / 1024 / 1024) + " MB");
         System.out.println(Time);
     }
 
     public static void main(String[] args) throws IOException {
         BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
         StringTokenizer st = new StringTokenizer(br.readLine());
+        Runtime runtime = Runtime.getRuntime();
+        long startMemory = runtime.totalMemory() - runtime.freeMemory(); // 시작 시 메모리 사용량
+
         N = Integer.parseInt(st.nextToken());
         M = Integer.parseInt(st.nextToken());
         Time = 1;
@@ -274,10 +285,13 @@ public class MemoryMax {
             st = new StringTokenizer(br.readLine());
             int y = Integer.parseInt(st.nextToken()) - 1;
             int x = Integer.parseInt(st.nextToken()) - 1;
-            peoples[i] = new People(0, 0, x, y, i + 1);
+            peoples[i] = new People(0, 0, x, y, i+1);
         }
 
         proceed();
+        long endMemory = runtime.totalMemory() - runtime.freeMemory(); // 종료 시 메모리 사용량
+        System.out.println("Final Memory Used: " + ((endMemory - startMemory) / 1024 / 1024) + " MB");
 
     }
 }
+

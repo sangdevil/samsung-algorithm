@@ -233,6 +233,7 @@ public class Main {
 
             movePeoples();
             lockStoreAndPeople();
+            trackMemoryUsage();
             if (Time <= M) {
                 selectedCamp = selectCamp(peoples[Time - 1]);
                 movePeopleToCamp(peoples[Time - 1], selectedCamp);
@@ -246,9 +247,9 @@ public class Main {
         }
         System.out.println(Time);
 
-//        System.out.println(Time);
+        System.out.println(Time);
 //        System.out.println("Total Time: " + Time);
-//        System.out.println("Max Memory Used: " + (maxMemoryUsed / 1024 / 1024) + " MB");
+        System.out.println("Max Memory Used: " + (maxMemoryUsed / 1024 / 1024) + " MB");
     }
 
     public static void main(String[] args) throws IOException {
@@ -288,10 +289,13 @@ public class Main {
             int x = Integer.parseInt(st.nextToken()) - 1;
             peoples[i] = new People(0, 0, x, y, i + 1);
         }
-//        Runtime runtime = Runtime.getRuntime();
-//        long startMemory = runtime.totalMemory() - runtime.freeMemory(); // 시작 시 메모리 사용량
+        Runtime runtime = Runtime.getRuntime();
+        long startMemory = runtime.totalMemory() - runtime.freeMemory(); // 시작 시 메모리 사용량
 
         proceed();
+//        System.gc();
+        long endMemory = runtime.totalMemory() - runtime.freeMemory(); // 종료 시 메모리 사용량
+        System.out.println("Final Memory Used: " + ((endMemory - startMemory) / 1024 / 1024) + " MB");
 
     }
 }
