@@ -198,6 +198,7 @@ public class Main {
             }
 //            System.out.println();
         }
+
         guns = new Gun[tmpGuns.size()];
         int gunNum = 0;
         for (Gun gun : tmpGuns) {
